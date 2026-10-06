@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Co-wear viewer</title>
+<link rel="stylesheet" href="vendor/uplot.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="hdr"></header>
+<div id="overview-wrap"><div class="panel-head"><button class="collapse" data-target="overview" aria-expanded="true" aria-label="Collapse overview">&#9662;</button><span class="small">Overview</span></div><section id="overview" aria-label="Whole-night overview"></section></div>
+<nav id="tabs"></nav>
+<main id="page"><div class="loading">Loading…</div></main>
+<div id="readout-wrap"><div class="panel-head"><button class="collapse" data-target="readout" aria-expanded="true" aria-label="Collapse epoch readout">&#9662;</button></div><section id="readout" aria-label="Epoch readout"></section></div>
+<footer id="foot"></footer>
+<script src="vendor/uplot.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

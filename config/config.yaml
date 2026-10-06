@@ -1,0 +1,65 @@
+# Paths (relative to the repository root, or absolute) and every analysis setting of the co-wear pipeline.
+# The defaults point at the synthetic night written by scripts/make_demo_data.py.
+# To run on your own recordings, copy this file, edit `sources`, `variants` and the roots, and set COWEAR_CONFIG to it.
+
+data_root: data                                  # build output: data/ax6apple/viewer
+preprocessed_root: data/demo/preprocessed        # device Parquet files (time, x, y, z in g) + a <file>.json provenance sidecar
+sleep_root: data/demo/sleep                      # sleep bouts per device: fit/<variant>/auto_sleep/abk/<stem>.csv
+
+ax6apple:
+  # Signal viewer. The recording start (variant `window_variant` `start`) is the epoch-grid anchor, never a round time.
+  viewer:
+    window_variant: ax6_night  # its start is the epoch anchor, its end the last sample compared
+    epoch_s: 30                # sleep-medicine epoch; the sleep bouts are on this grid
+    grid_hz: 30                # common analysis rate of the two devices
+    spectral_grid_hz: 50       # second common grid, spectral work only; grid_hz's Nyquist (15 Hz) drops 15-25 Hz
+    still_window_s: 10         # window of the calibration fit and of the gravity vectors used for the rotation
+    calibration_std_g: 0.013   # a window is still when the SD of every axis is below this
+    calibration_min_coverage: 0.5   # a calibration fit on still windows whose orientation coverage is below this is refused (it diverges)
+    calibration_low_coverage: 1.0   # ... and below this it is flagged low_orientation_coverage (2.0 is the whole sphere)
+    grid_start_tol_s: 1.0      # a device may start this long after the anchor (lag corrected) before the grid is refused rather than padded
+    max_gap_s: 1.0             # a stretch of missing samples longer than this is NaN on the grid and in the native chunks, never interpolated across
+    chunk_s: 1800              # artifact format: seconds per chunk file
+    ctx_hz: 4                  # artifact format: rate of the min/max context envelope
+    spec_seg_s: 8              # spectrogram artifact: Hann segment length
+    spec_hop_s: 4              # ... hop between segments (50 % overlap)
+    requested_start_h: 18      # requested night window: this hour on the anchor's day ...
+    requested_end_h: 8         # ... to this hour of the next day, intersected with the recorded span
+    # Epochs whose ENMO is below a device's own sensor-noise floor are flagged and kept out of ratio statistics. The floor
+    # is derived from the data (mean ENMO of the device's own noise, sigma_VM / sqrt(2 pi) on still native-rate windows), not set here.
+    lag_search_s: 5            # clock lag and within-epoch lag search range, plus and minus
+    lag_band_hz: [0.5, 10]     # band of the gravity-removed VM whose movement envelope gives the clock lag
+    lag_bin_s: 1               # envelope resolution: mean of |band-passed VM| per bin
+    # block_min is the block of the headline intervals; each is conditional on it, so block_sensitivity_min lists the others.
+    # null_draws: phase-randomised draws of the MA sweep null; epoch_null_draws: per-epoch draws of the peak-r null.
+    bootstrap: {block_min: 5, block_sensitivity_min: [5, 15, 30, 60], resamples: 2000, seed: 20260713, null_draws: 100, epoch_null_draws: 100}
+    ma_windows_s: [0, 0.25, 0.5, 1, 2, 5, 10, 30]
+  # Preprocessing quality gates: thresholds on data quality only (info / warn / fail per check, see quality.json).
+  preprocess:
+    limits:
+      completeness_warn: 0.80
+      completeness_fail: 0.50
+      gap_run_warn: 10
+      rate_error_warn: 0.005
+      jitter_warn: 0.10
+      reordered_frac_warn: 0.001
+      duplicate_frac_warn: 0.001
+      mean_mag_g: [0.5, 2.0]
+      axis_sd_g: [0.001, 10.0]
+      zero_run_frac_warn: 0.10
+      coverage_warn: 1.2
+      rms_warn_mg: 5.0
+      lag_r_warn: 0.30
+      rotation_residual_warn_deg: 20.0
+      rotation_uncertainty_warn_deg: 10.0
+  sources:                     # relative to preprocessed_root; the second path part is the session id shown in the viewer
+    ax6:
+      parquet: "DEMO/DEMO-S01/axivity/ax6.parquet"
+    apple:
+      parquet: "DEMO/DEMO-S01/apple_watch/apple_watch.parquet"
+  # `device` pairs the two sleep-bout files the viewer colours epochs by (ref = AX6, test = Apple Watch).
+  comparisons:
+    - {name: device, ref: ax6_night, test: apple_night, labels: [ax6, apple]}
+  variants:                    # times are naive local time
+    - {name: ax6_night,   source: ax6,   stem: demo-s01, start: "2026-01-10 22:31:07.250", end: "2026-01-11 06:31:07.250"}
+    - {name: apple_night, source: apple, stem: demo-s01, start: "2026-01-10 22:31:07.250", end: "2026-01-11 06:31:07.250"}

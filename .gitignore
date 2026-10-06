@@ -1,0 +1,14 @@
+# Generated data: the demo night and every built artifact. Never commit recordings.
+data/
+*.parquet
+*.f32
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+.venv/
+venv/
+.idea/
+.vscode/

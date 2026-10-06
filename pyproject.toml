@@ -1,0 +1,22 @@
+[project]
+name = "cowear-viewer"
+version = "0.1.0"
+description = "Side-by-side signal viewer and agreement analysis for two co-worn wrist accelerometers (Axivity AX6 vs Apple Watch)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pandas>=2.1",
+    "pyarrow>=14",
+    "PyWavelets>=1.5",
+    "PyYAML>=6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not slow'"   # slow = regression anchors on the private pilot recordings, not distributed
